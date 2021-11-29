@@ -22,7 +22,7 @@ use port_variable_rate_lending_instructions::instruction::{
     redeem_reserve_collateral, refresh_obligation, refresh_reserve, repay_obligation_liquidity,
     withdraw_obligation_collateral, LendingInstruction,
 };
-use port_variable_rate_lending_instructions::state::Obligation;
+use port_variable_rate_lending_instructions::state::{Obligation, Reserve};
 use crate::error::PortAdaptorError;
 
 
@@ -756,6 +756,41 @@ impl Deref for PortStakeAccount {
         &self.0
     }
 }
+
+#[derive(Clone)]
+pub struct PortReserve(Reserve);
+
+impl anchor_lang::AccountDeserialize for PortReserve {
+    fn try_deserialize(buf: &mut &[u8]) -> Result<Self, ProgramError> {
+        PortReserve::try_deserialize_unchecked(buf)
+    }
+
+    fn try_deserialize_unchecked(buf: &mut &[u8]) -> Result<Self, ProgramError> {
+        Reserve::unpack(buf).map(PortReserve)
+    }
+}
+
+impl anchor_lang::AccountSerialize for PortReserve {
+    fn try_serialize<W: Write>(&self, _writer: &mut W) -> Result<(), ProgramError> {
+        // no-op
+        Ok(())
+    }
+}
+
+impl anchor_lang::Owner for PortReserve {
+    fn owner() -> Pubkey {
+        port_variable_rate_lending_instructions::id()
+    }
+}
+
+impl Deref for PortReserve {
+    type Target = Reserve;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 
 #[derive(Clone)]
 pub struct PortObligation(Obligation);
