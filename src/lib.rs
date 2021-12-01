@@ -88,8 +88,8 @@ pub fn deposit_reserve<'a, 'b, 'c, 'info>(
             ctx.accounts.reserve_liquidity_supply,
             ctx.accounts.reserve_collateral_mint,
             ctx.accounts.lending_market,
-            ctx.accounts.transfer_authority,
             ctx.accounts.lending_market_authority,
+            ctx.accounts.transfer_authority,
             ctx.accounts.clock,
             ctx.accounts.token_program,
             ctx.program,
@@ -660,6 +660,20 @@ pub mod port_accessor {
         let available_liquidity = reserve_available_liquidity(account)?;
         let borrowed_amount = reserve_borrowed_amount(account)?;
         borrowed_amount.try_add(Decimal::from(available_liquidity))
+    }
+
+    pub fn reserve_lp_pubkey(account: &AccountInfo) -> Result<Pubkey, ProgramError> {
+        let bytes = account.try_borrow_data()?;
+        let mut amount_bytes = [0u8; 32];
+        amount_bytes.copy_from_slice(&bytes[42..74]);
+        Ok(Pubkey::new_from_array(amount_bytes))
+    }
+
+    pub fn reserve_liquidity_pubkey(account: &AccountInfo) -> Result<Pubkey, ProgramError> {
+        let bytes = account.try_borrow_data()?;
+        let mut amount_bytes = [0u8; 32];
+        amount_bytes.copy_from_slice(&bytes[231..263]);
+        Ok(Pubkey::new_from_array(amount_bytes))
     }
 
     pub fn reserve_mint_total(account: &AccountInfo) -> Result<u64, ProgramError> {
