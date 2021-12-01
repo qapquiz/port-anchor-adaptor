@@ -17,11 +17,7 @@ use port_staking_instructions::instruction::{
 };
 use port_staking_instructions::state::StakeAccount;
 use port_variable_rate_lending_instructions::id as port_lending_id;
-use port_variable_rate_lending_instructions::instruction::{
-    borrow_obligation_liquidity, deposit_reserve_liquidity_and_obligation_collateral,
-    redeem_reserve_collateral, refresh_obligation, refresh_reserve, repay_obligation_liquidity,
-    withdraw_obligation_collateral, LendingInstruction,
-};
+use port_variable_rate_lending_instructions::instruction::{borrow_obligation_liquidity, deposit_reserve_liquidity_and_obligation_collateral, redeem_reserve_collateral, refresh_obligation, refresh_reserve, repay_obligation_liquidity, withdraw_obligation_collateral, LendingInstruction, deposit_reserve_liquidity};
 use port_variable_rate_lending_instructions::state::{Obligation, Reserve};
 use crate::error::PortAdaptorError;
 
@@ -65,6 +61,55 @@ pub struct InitObligation<'info> {
     pub clock: AccountInfo<'info>,
     pub rent: AccountInfo<'info>,
     pub spl_token_id: AccountInfo<'info>,
+}
+
+pub fn deposit_reserve<'a, 'b, 'c, 'info>(
+    ctx: CpiContext<'a, 'b, 'c, 'info, Deposit<'info>>,
+    amount: u64,
+) -> ProgramResult {
+    let ix = deposit_reserve_liquidity(
+        port_variable_rate_lending_instructions::id(),
+        amount,
+        ctx.accounts.source_liquidity.key(),
+        ctx.accounts.destination_collateral.key(),
+        ctx.accounts.reserve.key(),
+        ctx.accounts.reserve_liquidity_supply.key(),
+        ctx.accounts.reserve_collateral_mint.key(),
+        ctx.accounts.lending_market.key(),
+        ctx.accounts.transfer_authority.key(),
+    );
+
+    invoke_signed(
+        &ix,
+        &[
+            ctx.accounts.source_liquidity,
+            ctx.accounts.destination_collateral,
+            ctx.accounts.reserve,
+            ctx.accounts.reserve_liquidity_supply,
+            ctx.accounts.reserve_collateral_mint,
+            ctx.accounts.lending_market,
+            ctx.accounts.transfer_authority,
+            ctx.accounts.lending_market_authority,
+            ctx.accounts.clock,
+            ctx.accounts.token_program,
+            ctx.program,
+        ],
+        ctx.signer_seeds,
+    )
+}
+
+#[derive(Accounts)]
+pub struct Deposit<'info> {
+    pub source_liquidity: AccountInfo<'info>,
+    pub destination_collateral: AccountInfo<'info>,
+    pub reserve: AccountInfo<'info>,
+    pub reserve_liquidity_supply: AccountInfo<'info>,
+    pub reserve_collateral_mint: AccountInfo<'info>,
+    pub lending_market: AccountInfo<'info>,
+    pub lending_market_authority: AccountInfo<'info>,
+    pub transfer_authority: AccountInfo<'info>,
+    pub clock: AccountInfo<'info>,
+    pub token_program: AccountInfo<'info>,
 }
 
 pub fn deposit_and_collateralize<'a, 'b, 'c, 'info>(
