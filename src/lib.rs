@@ -662,14 +662,14 @@ pub mod port_accessor {
         borrowed_amount.try_add(Decimal::from(available_liquidity))
     }
 
-    pub fn reserve_lp_pubkey(account: &AccountInfo) -> Result<Pubkey, ProgramError> {
+    pub fn reserve_liquidity_mint_pubkey(account: &AccountInfo) -> Result<Pubkey, ProgramError> {
         let bytes = account.try_borrow_data()?;
         let mut amount_bytes = [0u8; 32];
         amount_bytes.copy_from_slice(&bytes[42..74]);
         Ok(Pubkey::new_from_array(amount_bytes))
     }
 
-    pub fn reserve_liquidity_pubkey(account: &AccountInfo) -> Result<Pubkey, ProgramError> {
+    pub fn reserve_lp_mint_pubkey(account: &AccountInfo) -> Result<Pubkey, ProgramError> {
         let bytes = account.try_borrow_data()?;
         let mut amount_bytes = [0u8; 32];
         amount_bytes.copy_from_slice(&bytes[231..263]);
