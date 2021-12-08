@@ -922,9 +922,9 @@ impl PortStakingPool {
     pub const LEN: usize = StakingPool::LEN;
 }
 
-impl anchor_lang::AccountDeserialize for PortObligation {
+impl anchor_lang::AccountDeserialize for PortStakingPool {
     fn try_deserialize(buf: &mut &[u8]) -> Result<Self, ProgramError> {
-        PortObligation::try_deserialize_unchecked(buf)
+        PortStakingPool::try_deserialize_unchecked(buf)
     }
 
     fn try_deserialize_unchecked(buf: &mut &[u8]) -> Result<Self, ProgramError> {
