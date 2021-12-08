@@ -18,7 +18,7 @@ use port_staking_instructions::instruction::{
 use port_staking_instructions::state::{StakeAccount, StakingPool};
 use port_variable_rate_lending_instructions::id as port_lending_id;
 use port_variable_rate_lending_instructions::instruction::{borrow_obligation_liquidity, deposit_reserve_liquidity_and_obligation_collateral, redeem_reserve_collateral, refresh_obligation, refresh_reserve, repay_obligation_liquidity, withdraw_obligation_collateral, LendingInstruction, deposit_reserve_liquidity};
-use port_variable_rate_lending_instructions::state::{Obligation, Reserve};
+use port_variable_rate_lending_instructions::state::{CollateralExchangeRate, Obligation, Reserve};
 use crate::error::PortAdaptorError;
 
 
@@ -856,7 +856,7 @@ pub struct PortObligation(Obligation);
 
 impl PortObligation {
     pub const LEN: usize = Obligation::LEN;
-    pub fn calculate_liquidity(&self, reserve_pubkey: &Pubkey) -> Result<u64, ProgramError> {
+    pub fn calculate_liquidity(&self, reserve_pubkey: &Pubkey, exchange_rate: CollateralExchangeRate) -> Result<u64, ProgramError> {
         let borrow = self
             .borrows
             .iter()
@@ -878,7 +878,8 @@ impl PortObligation {
                     None
                 }
             }).unwrap_or(0);
-        deposit.checked_sub(borrow.try_ceil_u64()?).ok_or(PortAdaptorError::Insolvency.into())
+
+        exchange_rate.collateral_to_liquidity(deposit)?.checked_sub(borrow.try_ceil_u64()?).ok_or(PortAdaptorError::Insolvency.into())
     }
 }
 
