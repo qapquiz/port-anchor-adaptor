@@ -15,7 +15,7 @@ use port_staking_instructions::instruction::{
     deposit as port_staking_deposit, init_staking_pool as init_port_staking_pool,
     withdraw as port_staking_withdraw,
 };
-use port_staking_instructions::state::StakeAccount;
+use port_staking_instructions::state::{StakeAccount, StakingPool};
 use port_variable_rate_lending_instructions::id as port_lending_id;
 use port_variable_rate_lending_instructions::instruction::{borrow_obligation_liquidity, deposit_reserve_liquidity_and_obligation_collateral, redeem_reserve_collateral, refresh_obligation, refresh_reserve, repay_obligation_liquidity, withdraw_obligation_collateral, LendingInstruction, deposit_reserve_liquidity};
 use port_variable_rate_lending_instructions::state::{Obligation, Reserve};
@@ -912,3 +912,45 @@ impl Deref for PortObligation {
         &self.0
     }
 }
+
+
+
+#[derive(Clone)]
+pub struct PortStakingPool(StakingPool);
+
+impl PortStakingPool {
+    pub const LEN: usize = StakingPool::LEN;
+}
+
+impl anchor_lang::AccountDeserialize for PortObligation {
+    fn try_deserialize(buf: &mut &[u8]) -> Result<Self, ProgramError> {
+        PortObligation::try_deserialize_unchecked(buf)
+    }
+
+    fn try_deserialize_unchecked(buf: &mut &[u8]) -> Result<Self, ProgramError> {
+        StakingPool::unpack(buf).map(PortStakingPool)
+    }
+}
+
+impl anchor_lang::AccountSerialize for PortStakingPool {
+    fn try_serialize<W: Write>(&self, _writer: &mut W) -> Result<(), ProgramError> {
+        // no-op
+        Ok(())
+    }
+}
+
+impl anchor_lang::Owner for PortStakingPool {
+    fn owner() -> Pubkey {
+        port_staking_instructions::id()
+    }
+}
+
+impl Deref for PortStakingPool {
+    type Target = StakingPool;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+
