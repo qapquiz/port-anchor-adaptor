@@ -18,7 +18,7 @@ use port_staking_instructions::instruction::{
 use port_staking_instructions::state::{StakeAccount, StakingPool};
 use port_variable_rate_lending_instructions::id as port_lending_id;
 use port_variable_rate_lending_instructions::instruction::{borrow_obligation_liquidity, deposit_reserve_liquidity_and_obligation_collateral, redeem_reserve_collateral, refresh_obligation, refresh_reserve, repay_obligation_liquidity, withdraw_obligation_collateral, LendingInstruction, deposit_reserve_liquidity};
-use port_variable_rate_lending_instructions::state::{CollateralExchangeRate, Obligation, Reserve};
+use port_variable_rate_lending_instructions::state::{CollateralExchangeRate, LendingMarket, Obligation, Reserve};
 use crate::error::PortAdaptorError;
 
 
@@ -954,4 +954,42 @@ impl Deref for PortStakingPool {
     }
 }
 
+
+#[derive(Clone)]
+pub struct PortLendingMarket(LendingMarket);
+
+impl PortLendingMarket {
+    pub const LEN: usize = LendingMarket::LEN;
+}
+
+impl anchor_lang::AccountDeserialize for PortLendingMarket {
+    fn try_deserialize(buf: &mut &[u8]) -> Result<Self, ProgramError> {
+        PortLendingMarket::try_deserialize_unchecked(buf)
+    }
+
+    fn try_deserialize_unchecked(buf: &mut &[u8]) -> Result<Self, ProgramError> {
+        LendingMarket::unpack(buf).map(PortLendingMarket)
+    }
+}
+
+impl anchor_lang::AccountSerialize for PortLendingMarket {
+    fn try_serialize<W: Write>(&self, _writer: &mut W) -> Result<(), ProgramError> {
+        // no-op
+        Ok(())
+    }
+}
+
+impl anchor_lang::Owner for PortLendingMarket {
+    fn owner() -> Pubkey {
+        port_variable_rate_lending_instructions::id()
+    }
+}
+
+impl Deref for PortLendingMarket {
+    type Target = LendingMarket;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 
