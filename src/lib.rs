@@ -9,7 +9,7 @@ use anchor_lang::solana_program::instruction::Instruction;
 use anchor_lang::solana_program::program::{invoke, invoke_signed};
 use anchor_lang::solana_program::program_option::COption;
 use anchor_lang::solana_program::program_pack::Pack;
-use anchor_lang::CpiContext;
+use anchor_lang::context::CpiContext;
 use port_staking_instructions::instruction::{
     claim_reward as port_claim_reward, create_stake_account as create_port_stake_account,
     deposit as port_staking_deposit, init_staking_pool as init_port_staking_pool,
