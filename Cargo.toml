@@ -9,9 +9,7 @@ repository = "https://github.com/port-finance/sundial"
 authors = ["Port Finance Team <hello@port.finance>"]
 keywords = ["solana", "anchor", "defi", "port"]
 
-description = "Port Finance Anchor Adaptor"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 port-variable-rate-lending-instructions = "0.2.9"
 port-staking-instructions = "0.2.0"
