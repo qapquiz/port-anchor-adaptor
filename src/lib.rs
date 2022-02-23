@@ -24,7 +24,7 @@ use crate::error::PortAdaptorError;
 
 pub fn init_obligation<'a, 'b, 'c, 'info>(
     ctx: CpiContext<'a, 'b, 'c, 'info, InitObligation<'info>>,
-) -> ProgramResult {
+) -> Result<()> {
     let ix = Instruction {
         program_id: port_lending_id(),
         accounts: vec![
@@ -50,7 +50,7 @@ pub fn init_obligation<'a, 'b, 'c, 'info>(
             ctx.program,
         ],
         ctx.signer_seeds,
-    )
+    ).map_err(Into::into)
 }
 
 #[derive(Accounts)]
@@ -66,7 +66,7 @@ pub struct InitObligation<'info> {
 pub fn deposit_reserve<'a, 'b, 'c, 'info>(
     ctx: CpiContext<'a, 'b, 'c, 'info, Deposit<'info>>,
     amount: u64,
-) -> ProgramResult {
+) -> Result<()> {
     let ix = deposit_reserve_liquidity(
         port_variable_rate_lending_instructions::id(),
         amount,
@@ -95,7 +95,7 @@ pub fn deposit_reserve<'a, 'b, 'c, 'info>(
             ctx.program,
         ],
         ctx.signer_seeds,
-    )
+    ).map_err(Into::into)
 }
 
 #[derive(Accounts)]
@@ -115,7 +115,7 @@ pub struct Deposit<'info> {
 pub fn deposit_and_collateralize<'a, 'b, 'c, 'info>(
     ctx: CpiContext<'a, 'b, 'c, 'info, DepositAndCollateralize<'info>>,
     amount: u64,
-) -> ProgramResult {
+) -> Result<()> {
     let ix = deposit_reserve_liquidity_and_obligation_collateral(
         port_variable_rate_lending_instructions::id(),
         amount,
@@ -155,7 +155,7 @@ pub fn deposit_and_collateralize<'a, 'b, 'c, 'info>(
             ctx.program,
         ],
         ctx.signer_seeds,
-    )
+    ).map_err(Into::into)
 }
 
 #[derive(Accounts)]
@@ -181,7 +181,7 @@ pub struct DepositAndCollateralize<'info> {
 pub fn borrow<'a, 'b, 'c, 'info>(
     ctx: CpiContext<'a, 'b, 'c, 'info, Borrow<'info>>,
     amount: u64,
-) -> ProgramResult {
+) -> Result<()> {
     let ix = borrow_obligation_liquidity(
         port_variable_rate_lending_instructions::id(),
         amount,
@@ -210,7 +210,7 @@ pub fn borrow<'a, 'b, 'c, 'info>(
             ctx.program,
         ],
         ctx.signer_seeds,
-    )
+    ).map_err(Into::into)
 }
 
 #[derive(Accounts)]
@@ -230,7 +230,7 @@ pub struct Borrow<'info> {
 pub fn repay<'a, 'b, 'c, 'info>(
     ctx: CpiContext<'a, 'b, 'c, 'info, Repay<'info>>,
     amount: u64,
-) -> ProgramResult {
+) -> Result<()> {
     let ix = repay_obligation_liquidity(
         port_variable_rate_lending_instructions::id(),
         amount,
@@ -256,7 +256,7 @@ pub fn repay<'a, 'b, 'c, 'info>(
             ctx.program,
         ],
         ctx.signer_seeds,
-    )
+    ).map_err(Into::into)
 }
 
 #[derive(Accounts)]
@@ -274,7 +274,7 @@ pub struct Repay<'info> {
 pub fn withdraw<'a, 'b, 'c, 'info>(
     ctx: CpiContext<'a, 'b, 'c, 'info, Withdraw<'info>>,
     amount: u64,
-) -> ProgramResult {
+) -> Result<()> {
     let ix = withdraw_obligation_collateral(
         port_variable_rate_lending_instructions::id(),
         amount,
@@ -306,7 +306,7 @@ pub fn withdraw<'a, 'b, 'c, 'info>(
             ctx.program,
         ],
         ctx.signer_seeds,
-    )
+    ).map_err(Into::into)
 }
 
 #[derive(Accounts)]
@@ -328,7 +328,7 @@ pub struct Withdraw<'info> {
 pub fn redeem<'a, 'b, 'c, 'info>(
     ctx: CpiContext<'a, 'b, 'c, 'info, Redeem<'info>>,
     amount: u64,
-) -> ProgramResult {
+) -> Result<()> {
     let ix = redeem_reserve_collateral(
         port_variable_rate_lending_instructions::id(),
         amount,
@@ -357,7 +357,7 @@ pub fn redeem<'a, 'b, 'c, 'info>(
             ctx.program,
         ],
         ctx.signer_seeds,
-    )
+    ).map_err(Into::into)
 }
 
 #[derive(Accounts)]
@@ -376,7 +376,7 @@ pub struct Redeem<'info> {
 
 pub fn refresh_port_reserve<'a, 'b, 'c, 'info>(
     ctx: CpiContext<'a, 'b, 'c, 'info, RefreshReserve<'info>>,
-) -> ProgramResult {
+) -> Result<()> {
     let oracle = ctx.remaining_accounts;
     let ix = refresh_reserve(
         port_variable_rate_lending_instructions::id(),
@@ -387,7 +387,7 @@ pub fn refresh_port_reserve<'a, 'b, 'c, 'info>(
     );
     let mut accounts = vec![ctx.accounts.reserve, ctx.accounts.clock, ctx.program];
     accounts.extend(oracle.into_iter().next());
-    invoke(&ix, &accounts)
+    invoke(&ix, &accounts).map_err(Into::into)
 }
 
 #[derive(Accounts)]
@@ -398,7 +398,7 @@ pub struct RefreshReserve<'info> {
 
 pub fn refresh_port_obligation<'a, 'b, 'c, 'info>(
     ctx: CpiContext<'a, 'b, 'c, 'info, RefreshObligation<'info>>,
-) -> ProgramResult {
+) -> Result<()> {
     let reserves = ctx.remaining_accounts;
     let ix = refresh_obligation(
         port_variable_rate_lending_instructions::id(),
@@ -408,7 +408,7 @@ pub fn refresh_port_obligation<'a, 'b, 'c, 'info>(
     let mut account_infos = vec![ctx.accounts.obligation, ctx.accounts.clock];
     account_infos.extend(reserves);
     account_infos.push(ctx.program);
-    invoke(&ix, &account_infos)
+    invoke(&ix, &account_infos).map_err(Into::into)
 }
 
 #[derive(Accounts)]
@@ -419,7 +419,7 @@ pub struct RefreshObligation<'info> {
 
 pub fn claim_reward<'a, 'b, 'c, 'info>(
     ctx: CpiContext<'a, 'b, 'c, 'info, ClaimReward<'info>>,
-) -> ProgramResult {
+) -> Result<()> {
     let ix = port_claim_reward(
         port_staking_instructions::id(),
         ctx.accounts.stake_account_owner.key(),
@@ -443,7 +443,7 @@ pub fn claim_reward<'a, 'b, 'c, 'info>(
             ctx.program,
         ],
         ctx.signer_seeds,
-    )
+    ).map_err(Into::into)
 }
 
 #[derive(Accounts, Clone)]
@@ -463,7 +463,7 @@ pub fn create_port_staking_pool<'a, 'b, 'c, 'info>(
     supply: u64,
     duration: u64,
     earliest_reward_claim_time: Slot,
-) -> ProgramResult {
+) -> Result<()> {
     let ix = init_port_staking_pool(
         port_staking_instructions::id(),
         supply,
@@ -492,7 +492,7 @@ pub fn create_port_staking_pool<'a, 'b, 'c, 'info>(
             ctx.program,
         ],
         ctx.signer_seeds,
-    )
+    ).map_err(Into::into)
 }
 
 #[derive(Accounts, Clone)]
@@ -511,7 +511,7 @@ pub struct CreateStakingPoolContext<'info> {
 
 pub fn create_stake_account<'a, 'b, 'c, 'info>(
     ctx: CpiContext<'a, 'b, 'c, 'info, CreateStakeAccount<'info>>,
-) -> ProgramResult {
+) -> Result<()> {
     let ix = create_port_stake_account(
         port_staking_instructions::id(),
         ctx.accounts.stake_account.key(),
@@ -528,7 +528,7 @@ pub fn create_stake_account<'a, 'b, 'c, 'info>(
             ctx.program,
         ],
         ctx.signer_seeds,
-    )
+    ).map_err(Into::into)
 }
 
 #[derive(Accounts, Clone)]
@@ -542,7 +542,7 @@ pub struct CreateStakeAccount<'info> {
 pub fn port_stake<'a, 'b, 'c, 'info>(
     ctx: CpiContext<'a, 'b, 'c, 'info, PortStake<'info>>,
     amount: u64,
-) -> ProgramResult {
+) -> Result<()> {
     let ix = port_staking_deposit(
         port_staking_instructions::id(),
         amount,
@@ -560,7 +560,7 @@ pub fn port_stake<'a, 'b, 'c, 'info>(
             ctx.program,
         ],
         ctx.signer_seeds,
-    )
+    ).map_err(Into::into)
 }
 
 #[derive(Accounts, Clone)]
@@ -574,7 +574,7 @@ pub struct PortStake<'info> {
 pub fn port_unstake<'a, 'b, 'c, 'info>(
     ctx: CpiContext<'a, 'b, 'c, 'info, PortUnstake<'info>>,
     amount: u64,
-) -> ProgramResult {
+) -> Result<()> {
     let ix = port_staking_withdraw(
         port_staking_instructions::id(),
         amount,
@@ -592,7 +592,7 @@ pub fn port_unstake<'a, 'b, 'c, 'info>(
             ctx.program,
         ],
         ctx.signer_seeds,
-    )
+    ).map_err(Into::into)
 }
 
 #[derive(Accounts, Clone)]
@@ -621,76 +621,76 @@ pub mod port_accessor {
         Decimal::from_scaled_val(u128::from_le_bytes(*src))
     }
 
-    pub fn reserve_ltv(account: &AccountInfo) -> Result<u8, ProgramError> {
+    pub fn reserve_ltv(account: &AccountInfo) -> Result<u8> {
         let bytes = account.try_borrow_data()?;
         let mut amount_bytes = [0u8; 1];
         amount_bytes.copy_from_slice(&bytes[304..305]);
         Ok(u8::from_le_bytes(amount_bytes))
     }
 
-    pub fn reserve_available_liquidity(account: &AccountInfo) -> Result<u64, ProgramError> {
+    pub fn reserve_available_liquidity(account: &AccountInfo) -> Result<u64> {
         let bytes = account.try_borrow_data()?;
         let mut amount_bytes = [0u8; 8];
         amount_bytes.copy_from_slice(&bytes[175..183]);
         Ok(u64::from_le_bytes(amount_bytes))
     }
 
-    pub fn reserve_borrowed_amount(account: &AccountInfo) -> Result<Decimal, ProgramError> {
+    pub fn reserve_borrowed_amount(account: &AccountInfo) -> Result<Decimal> {
         let bytes = account.try_borrow_data()?;
         let mut amount_bytes = [0u8; 16];
         amount_bytes.copy_from_slice(&bytes[183..199]);
         Ok(unpack_decimal(&amount_bytes))
     }
 
-    pub fn reserve_market_price(account: &AccountInfo) -> Result<Decimal, ProgramError> {
+    pub fn reserve_market_price(account: &AccountInfo) -> Result<Decimal> {
         let bytes = account.try_borrow_data()?;
         let mut amount_bytes = [0u8; 16];
         amount_bytes.copy_from_slice(&bytes[215..231]);
         Ok(unpack_decimal(&amount_bytes))
     }
 
-    pub fn reserve_oracle_pubkey(account: &AccountInfo) -> Result<Pubkey, ProgramError> {
+    pub fn reserve_oracle_pubkey(account: &AccountInfo) -> Result<Pubkey> {
         let bytes = account.try_borrow_data()?;
         let mut amount_bytes = [0u8; 32];
         amount_bytes.copy_from_slice(&bytes[143..175]);
         Ok(Pubkey::new_from_array(amount_bytes))
     }
 
-    pub fn reserve_total_liquidity(account: &AccountInfo) -> Result<Decimal, ProgramError> {
+    pub fn reserve_total_liquidity(account: &AccountInfo) -> Result<Decimal> {
         let available_liquidity = reserve_available_liquidity(account)?;
         let borrowed_amount = reserve_borrowed_amount(account)?;
-        borrowed_amount.try_add(Decimal::from(available_liquidity))
+        borrowed_amount.try_add(Decimal::from(available_liquidity)).map_err(Into::into)
     }
 
-    pub fn reserve_liquidity_mint_pubkey(account: &AccountInfo) -> Result<Pubkey, ProgramError> {
+    pub fn reserve_liquidity_mint_pubkey(account: &AccountInfo) -> Result<Pubkey> {
         let bytes = account.try_borrow_data()?;
         let mut amount_bytes = [0u8; 32];
         amount_bytes.copy_from_slice(&bytes[42..74]);
         Ok(Pubkey::new_from_array(amount_bytes))
     }
 
-    pub fn reserve_lp_mint_pubkey(account: &AccountInfo) -> Result<Pubkey, ProgramError> {
+    pub fn reserve_lp_mint_pubkey(account: &AccountInfo) -> Result<Pubkey> {
         let bytes = account.try_borrow_data()?;
         let mut amount_bytes = [0u8; 32];
         amount_bytes.copy_from_slice(&bytes[231..263]);
         Ok(Pubkey::new_from_array(amount_bytes))
     }
 
-    pub fn reserve_mint_total(account: &AccountInfo) -> Result<u64, ProgramError> {
+    pub fn reserve_mint_total(account: &AccountInfo) -> Result<u64> {
         let bytes = account.try_borrow_data()?;
         let mut amount_bytes = [0u8; 8];
         amount_bytes.copy_from_slice(&bytes[263..271]);
         Ok(u64::from_le_bytes(amount_bytes))
     }
 
-    pub fn reserve_borrow_fee(account: &AccountInfo) -> Result<Rate, ProgramError> {
+    pub fn reserve_borrow_fee(account: &AccountInfo) -> Result<Rate> {
         let bytes = account.try_borrow_data()?;
         let mut amount_bytes = [0u8; 8];
         amount_bytes.copy_from_slice(&bytes[310..318]);
         Ok(Rate::from_scaled_val(u64::from_le_bytes(amount_bytes)))
     }
 
-    pub fn exchange_rate(account: &AccountInfo) -> Result<CollateralExchangeRate, ProgramError> {
+    pub fn exchange_rate(account: &AccountInfo) -> Result<CollateralExchangeRate> {
         let mint_total_supply = reserve_mint_total(account)?;
         let total_liquidity = reserve_total_liquidity(account)?;
         let rate = if mint_total_supply == 0 || total_liquidity == Decimal::zero() {
@@ -703,12 +703,12 @@ pub mod port_accessor {
         Ok(CollateralExchangeRate(port_rate))
     }
 
-    pub fn obligation_deposits_count(account: &AccountInfo) -> Result<u8, ProgramError> {
+    pub fn obligation_deposits_count(account: &AccountInfo) -> Result<u8> {
         let bytes = account.try_borrow_data()?;
         Ok(bytes[138])
     }
 
-    pub fn obligation_borrows_count(account: &AccountInfo) -> Result<u8, ProgramError> {
+    pub fn obligation_borrows_count(account: &AccountInfo) -> Result<u8> {
         let bytes = account.try_borrow_data()?;
         Ok(bytes[139])
     }
@@ -716,13 +716,13 @@ pub mod port_accessor {
     pub fn obligation_borrow_amount_wads(
         account: &AccountInfo,
         n: u8,
-    ) -> Result<Decimal, ProgramError> {
+    ) -> Result<Decimal> {
         let bytes = account.try_borrow_data()?;
         let deposit_lens = obligation_deposits_count(account)?;
         let borrows_lens = obligation_borrows_count(account)?;
         if n >= borrows_lens {
             msg!("No enough borrows");
-            return Err(PortAdaptorError::BorrowIndexOutOfBound.into());
+            return Err(error!(PortAdaptorError::BorrowIndexOutOfBound));
         }
         let mut amount_bytes = [0u8; 16];
         let start_index = 140
@@ -735,12 +735,12 @@ pub mod port_accessor {
         Ok(unpack_decimal(&amount_bytes))
     }
 
-    pub fn obligation_deposit_amount(account: &AccountInfo, n: u8) -> Result<u64, ProgramError> {
+    pub fn obligation_deposit_amount(account: &AccountInfo, n: u8) -> Result<u64> {
         let bytes = account.try_borrow_data()?;
         let deposit_lens = obligation_deposits_count(account)?;
         if n >= deposit_lens {
             msg!("No enough deposits");
-            return Err(PortAdaptorError::CollateralIndexOutOfBound.into());
+            return Err(error!(PortAdaptorError::CollateralIndexOutOfBound));
         }
         let mut amount_bytes = [0u8; 8];
         let start_index = 140 + n as usize * OBLIGATION_COLLATERAL_LEN + PUBKEY_BYTES;
@@ -753,7 +753,7 @@ pub mod port_accessor {
         port_exchange_rate: &CollateralExchangeRate,
         deposit_index: u8,
         borrow_index: u8,
-    ) -> Result<Decimal, ProgramError> {
+    ) -> Result<Decimal> {
         let deposit = if obligation_deposits_count(account)? == 0 {
             0u64
         } else {
@@ -765,15 +765,15 @@ pub mod port_accessor {
         } else {
             obligation_borrow_amount_wads(account, borrow_index)?
         };
-        Decimal::from(deposit).try_sub(borrow)
+        Decimal::from(deposit).try_sub(borrow).map_err(Into::into)
     }
 
-    pub fn is_obligation_stale(account: &AccountInfo) -> Result<bool, ProgramError> {
+    pub fn is_obligation_stale(account: &AccountInfo) -> Result<bool> {
         let bytes = account.try_borrow_data()?;
         Ok(bytes[9] == 1)
     }
 
-    pub fn is_reserve_stale(account: &AccountInfo) -> Result<bool, ProgramError> {
+    pub fn is_reserve_stale(account: &AccountInfo) -> Result<bool> {
         let bytes = account.try_borrow_data()?;
         Ok(bytes[9] == 1)
     }
@@ -786,17 +786,17 @@ impl PortStakeAccount {
 }
 
 impl anchor_lang::AccountDeserialize for PortStakeAccount {
-    fn try_deserialize(buf: &mut &[u8]) -> Result<Self, ProgramError> {
+    fn try_deserialize(buf: &mut &[u8]) -> Result<Self> {
         PortStakeAccount::try_deserialize_unchecked(buf)
     }
 
-    fn try_deserialize_unchecked(buf: &mut &[u8]) -> Result<Self, ProgramError> {
-        StakeAccount::unpack(buf).map(PortStakeAccount)
+    fn try_deserialize_unchecked(buf: &mut &[u8]) -> Result<Self> {
+        StakeAccount::unpack(buf).map(PortStakeAccount).map_err(Into::into)
     }
 }
 
 impl anchor_lang::AccountSerialize for PortStakeAccount {
-    fn try_serialize<W: Write>(&self, _writer: &mut W) -> Result<(), ProgramError> {
+    fn try_serialize<W: Write>(&self, _writer: &mut W) -> Result<()> {
         // no-op
         Ok(())
     }
@@ -820,17 +820,17 @@ impl Deref for PortStakeAccount {
 pub struct PortReserve(Reserve);
 
 impl anchor_lang::AccountDeserialize for PortReserve {
-    fn try_deserialize(buf: &mut &[u8]) -> Result<Self, ProgramError> {
+    fn try_deserialize(buf: &mut &[u8]) -> Result<Self> {
         PortReserve::try_deserialize_unchecked(buf)
     }
 
-    fn try_deserialize_unchecked(buf: &mut &[u8]) -> Result<Self, ProgramError> {
-        Reserve::unpack(buf).map(PortReserve)
+    fn try_deserialize_unchecked(buf: &mut &[u8]) -> Result<Self> {
+        Reserve::unpack(buf).map(PortReserve).map_err(Into::into)
     }
 }
 
 impl anchor_lang::AccountSerialize for PortReserve {
-    fn try_serialize<W: Write>(&self, _writer: &mut W) -> Result<(), ProgramError> {
+    fn try_serialize<W: Write>(&self, _writer: &mut W) -> Result<()> {
         // no-op
         Ok(())
     }
@@ -856,7 +856,7 @@ pub struct PortObligation(Obligation);
 
 impl PortObligation {
     pub const LEN: usize = Obligation::LEN;
-    pub fn calculate_liquidity(&self, reserve_pubkey: &Pubkey, exchange_rate: CollateralExchangeRate) -> Result<u64, ProgramError> {
+    pub fn calculate_liquidity(&self, reserve_pubkey: &Pubkey, exchange_rate: CollateralExchangeRate) -> Result<u64> {
         let borrow = self
             .borrows
             .iter()
@@ -884,17 +884,17 @@ impl PortObligation {
 }
 
 impl anchor_lang::AccountDeserialize for PortObligation {
-    fn try_deserialize(buf: &mut &[u8]) -> Result<Self, ProgramError> {
+    fn try_deserialize(buf: &mut &[u8]) -> Result<Self> {
         PortObligation::try_deserialize_unchecked(buf)
     }
 
-    fn try_deserialize_unchecked(buf: &mut &[u8]) -> Result<Self, ProgramError> {
-        Obligation::unpack(buf).map(PortObligation)
+    fn try_deserialize_unchecked(buf: &mut &[u8]) -> Result<Self> {
+        Obligation::unpack(buf).map(PortObligation).map_err(Into::into)
     }
 }
 
 impl anchor_lang::AccountSerialize for PortObligation {
-    fn try_serialize<W: Write>(&self, _writer: &mut W) -> Result<(), ProgramError> {
+    fn try_serialize<W: Write>(&self, _writer: &mut W) -> Result<()> {
         // no-op
         Ok(())
     }
@@ -924,17 +924,17 @@ impl PortStakingPool {
 }
 
 impl anchor_lang::AccountDeserialize for PortStakingPool {
-    fn try_deserialize(buf: &mut &[u8]) -> Result<Self, ProgramError> {
+    fn try_deserialize(buf: &mut &[u8]) -> Result<Self> {
         PortStakingPool::try_deserialize_unchecked(buf)
     }
 
-    fn try_deserialize_unchecked(buf: &mut &[u8]) -> Result<Self, ProgramError> {
-        StakingPool::unpack(buf).map(PortStakingPool)
+    fn try_deserialize_unchecked(buf: &mut &[u8]) -> Result<Self> {
+        StakingPool::unpack(buf).map(PortStakingPool).map_err(Into::into)
     }
 }
 
 impl anchor_lang::AccountSerialize for PortStakingPool {
-    fn try_serialize<W: Write>(&self, _writer: &mut W) -> Result<(), ProgramError> {
+    fn try_serialize<W: Write>(&self, _writer: &mut W) -> Result<()> {
         // no-op
         Ok(())
     }
@@ -963,17 +963,17 @@ impl PortLendingMarket {
 }
 
 impl anchor_lang::AccountDeserialize for PortLendingMarket {
-    fn try_deserialize(buf: &mut &[u8]) -> Result<Self, ProgramError> {
+    fn try_deserialize(buf: &mut &[u8]) -> Result<Self> {
         PortLendingMarket::try_deserialize_unchecked(buf)
     }
 
-    fn try_deserialize_unchecked(buf: &mut &[u8]) -> Result<Self, ProgramError> {
-        LendingMarket::unpack(buf).map(PortLendingMarket)
+    fn try_deserialize_unchecked(buf: &mut &[u8]) -> Result<Self> {
+        LendingMarket::unpack(buf).map(PortLendingMarket).map_err(Into::into)
     }
 }
 
 impl anchor_lang::AccountSerialize for PortLendingMarket {
-    fn try_serialize<W: Write>(&self, _writer: &mut W) -> Result<(), ProgramError> {
+    fn try_serialize<W: Write>(&self, _writer: &mut W) -> Result<()> {
         // no-op
         Ok(())
     }
